@@ -9,7 +9,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // Constant variables;
-const DBURI = "mongodb+srv://AdakCelina:112211@chatappcluster.3aqzo.mongodb.net/chatappDatabase?retryWrites=true&w=majority";
+const DBURI = "Fuck off!";
 
 // Setting up the server;
 const server = require("http").createServer(app);
@@ -35,9 +35,6 @@ require("./ScreenRequests/mainPage.js")(app);
 // Post:
 require("./ScreenRequests/AJAXBASED/chatRoom.js")(app);
 
-
-
-
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~;
 // SOCKET;
 // Event emiter for listening on the io;
@@ -49,17 +46,7 @@ io.on('connection', (socket) => {
     require("./Socket/sendMessageF.js")(socket);         // Send message;
     require("./Socket/connectUserToChatRoom.js")(socket) // Connect user to a chat room;
 
-
-
-
 });
-
-
-
-
-
-
-
 
 // Starting the server;
 mongoose.connect(DBURI, {
