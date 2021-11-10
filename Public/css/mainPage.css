@@ -1,0 +1,58 @@
+body {
+    align-items: center;
+    text-align: center;
+    background-color: rebeccapurple;
+}
+
+h1 {
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+h3 {
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}
+
+#formDiv {
+    width: 90%;
+    max-width: 500px;
+    height: 600px;
+    background-color: white;
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: 5%;
+    border: 5px solid purple;
+}
+
+.userInfoEntry {
+    border: 1px solid gray;
+    width: 60%;
+    font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    font-size: 24px;
+}
+
+.joinRoomButton {
+    width: 40%;
+    height: 50px;
+    border: 2px solid purple;
+    background-color: rgb(253, 61, 61);
+    font-size: large;
+    color: white;
+}
+
+.joinRoomButton:hover {
+    border: 2px solid purple;
+    background-color: rgb(250, 165, 165);
+    font-size: large;
+    color: white;
+}
+
+
+#createRoomText {
+    color: blue;
+    user-select: none;
+}
+
+#createRoomText:hover {
+    color: purple;
+    text-decoration: underline;
+}

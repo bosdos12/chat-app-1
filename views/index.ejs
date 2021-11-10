@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Adaks Chat App | HomePage</title>
+        <link rel="stylesheet" href="css/mainPage.css">
+    </head>
+    <body>
+        
+        
+        <h1 style="color: white; text-decoration: underline;text-underline-offset: 5px;">Chat App</h1>
+
+        <div id="formDiv">
+
+            <!-- Basic Info -->
+            <h1>Join a <span style="color: red;">Room</span></h1>
+            <div style="width: 80%; height: 1px; background-color: black;margin-left: auto;margin-right: auto; margin-bottom: 40px;"></div>
+
+            <!-- Entries -->
+
+            <!-- Username -->
+            <h3>Username:</h3>
+            <input id="usernameEntry" placeholder="username" class="userInfoEntry" type="text" />
+            <div style="width: 70%; height: 3px; background-color: red;margin-left: auto;margin-right: auto;margin-top: 20px; margin-bottom: 40px;"></div>
+
+            <!-- Room ID -->
+            <h3>Room ID:</h3>
+            <input id="roomIDEntry" placeholder="room id" class="userInfoEntry" type="text" />
+            <div style="width: 70%; height: 3px; background-color: red;margin-left: auto;margin-right: auto;margin-top: 20px; margin-bottom: 40px;"></div>
+
+            <!-- Join Room Button -->
+            <br>
+            <input onclick="joinRoomF()" class="joinRoomButton" type="button" value="Join Room">
+
+
+            <!-- Create Room Text -->
+            <br><br><br>
+            <hr>
+            <h3 onclick="createRoomF()" id="createRoomText">Create Room</h3>
+
+        </div>
+
+        
+        <script>
+            // All javascript related to this file.
+            
+            // JoinRoom function, takes the user entrees, sends the request to the server.
+            // If successfull, receives the room html in the response and sets it as the document.
+            // Then connects to the room via a server request using the desired room id stored in the localstorage; 
+            const joinRoomF = () => {
+                // Getting the user entry data.
+                const username = document.getElementById("usernameEntry").value;
+                const roomID   = document.getElementById("roomIDEntry").value;
+
+                // Checking if the entered data is valid (obviously serverside authentication exists too).
+                if (checkIfEnteredUserDataIsValidF(username) && checkIfEnteredUserDataIsValidF(roomID)) {
+                    // Code below runs only if the entered user data is valid.
+                    
+
+                    // Setting the current user data in the local storage;
+                    localStorage.setItem("username", username);
+                    localStorage.setItem("roomID", roomID);
+
+                    // Getting the room page HTML of the page via a get request,
+                    // If successfull the page will be received, otherwise a user data error wil be given;
+                    fetch("/chatRoom", {
+                        method: "POST",
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            username,
+                            roomID
+                            // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~; 
+                    })}).then(res => res.json()).then(data => {
+                        // Successfull server request;
+                        
+                        // If the validity is successfull, setting the received html as the page html;
+                        if (data.validity) {
+                            document.write(data.webHtml);
+                        } else {
+                            alert(data.msg) // Otherwise, alerting the user about the error;
+                        }
+
+                    }).catch(err => {
+                        // Server connectivity issues;
+                        alert("Server connectivity issues.\nPlease make sure you have a good internet connection.");
+                        console.log(err);
+                    })
+
+
+
+                } else alert("Please enter valid user data.");
+            };
+
+            // Takes a string value (user data) as a parameter and checks if the data is as desired.
+            const checkIfEnteredUserDataIsValidF = (parameterString) => {
+                if (parameterString.length > 0 && parameterString != null && parameterString != undefined) {
+                    return true
+                } else return false;
+            };
+
+
+
+            // The function for creating a room.
+            // It asks the user for a username, after,
+            // Via an AJAX request it creates the room on the database with the current user's username as the admin.
+            // Sends the creator user to the room url, and the room closes once the admin user leaves.
+            const createRoomF = () => {
+                alert("nice");
+            };
+
+
+
+
+        </script>
+    </body>
+</html>

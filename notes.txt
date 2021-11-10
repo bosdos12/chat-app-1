@@ -1,0 +1,3 @@
+// Username already exists in the database;
+                            socket.emit("connectUserToChatRoom", {validity: false, cause: "usnaexist"});  // Username already exists;
+                        };

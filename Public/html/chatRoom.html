@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Adaks Chat App | Chat Page</title>
+        <link rel="stylesheet" href="../css/chatRoomStyle.css">
+    </head>
+    <body>
+        
+        <!-- All including box for seperating stuff. -->
+        <div id="allIncludingCenterSeperatorChatBox">
+            
+
+            <!-- Where all the room users and the "leave room button" is shown; -->
+            <div id="chatDivUsersPart">
+                <h1 id="currentAdminHeader" style="color: red;">Admin: </h1>
+                <h1 id="adminUsername" style="color: black;">aaaa</h1>
+                <hr style="border: 2px solid black;">
+
+                <h1 id="currentUsersCountAndHeader" style="color: black;">Current Users: 5</h1>
+                <hr>
+
+                <div id="chatDivUsersPartButtonsPart">
+
+                    <div id="savebtn" class="chatDivUsersPartButtonsStyle"><h3>Save Chat</h3></div> <!-- Save chat;  -->
+                    <div class="chatDivUsersPartButtonsStyle"><h3>Leave</h3></div>                  <!-- Leave Chat; -->
+
+                </div>
+                <hr>
+
+                <div id="usersHere">
+
+                </div>
+
+
+            
+            </div>
+
+
+            <div id="chatDivChatPart">
+                    <!-- <div class="receivedTextMessage">
+                        <h3 class="receivedMessageHeader">Addakkiii</h3>
+                        <p class="receivedMessageMainText">this is nice aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa</p>
+                    </div>
+
+                    <div class="sentTextMessage">
+                        <p class="sentMessageMainText">aaaa</p>
+                    </div> -->
+                
+                <!-- The actual text messages chat area; -->
+                <div id="textMessagesChatArea">
+
+                </div>
+                
+                <!-- Message sending controls part; -->
+                <div id="messageSendingEntryAndButtonsDiv">
+
+                    <!-- Text Entry; -->
+                    <input type="text" id="messageTextEntry">
+
+                    <!-- Comtrol Buttons; -->
+                    <div id="messageSendingEntryAndButtonsDivButtonsPart">
+                        <button onclick="sendMessageF()" id="sendMessageButton">send</button>
+                    </div>
+                </div>
+
+
+            </div>
+            
+            
+            
+
+
+        </div>
+        <!-- Socket Connection; -->
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+            // State holder variables;
+            let socketMessageSendQuestionMade = false; // The state holder for the message sending socket event handler, prevents a weird loop which i cant explain;
+            let userHasBeenConnectedToRoom    = false;
+            
+
+        
+        
+        </script>
+        <script>
+            // Socket Initialisation;
+            var socket = io();
+
+            // Code for connecting the user to the desired chat room;
+            if (!userHasBeenConnectedToRoom) {
+                    socket.emit("connectUserToChatRoom", {
+                        username: localStorage.getItem("username"),
+                        roomID: localStorage.getItem("roomID")
+                    });
+                    
+
+                    // The user has been connected to room, setting the state of userHasBeenConnectedToRoom to true from false;
+                    userHasBeenConnectedToRoom = true;
+                };
+
+            // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~;
+            // Socket event listeners;
+
+            
+            // Data received from the auto room join of the user;
+            socket.on("connectUserToChatRoom", (roomData) => {
+                // Checking if connection successfull;
+                if (roomData.validity) {
+                    console.log(roomData);
+                } else {
+                    // Connection not succesfull, going through possible causes and displaying a message based of that;
+                    // if (roomData.cause == "usn") { // no username;
+                    //     clearAndGoBackF("Please enter a username");
+                    // } else if (roomData.cause == "roomID") { // no roomID;
+                    //     clearAndGoBackF("Please enter a room ID.");
+                    // } else
+                    if (roomData.cause == "rde") { // room doesnt exist;
+                        clearAndGoBackF(`The room with the room id: "${localStorage.getItem("roomID")} doesn't exist."`);
+                    } else if (roomData.cause == "ise") { // internal server error;
+                        clearAndGoBackF("Internal Server Error.");
+                    } else if (roomData.cause == "usnaexist") { // Username already exists in the current room;
+                        clearAndGoBackF("The username you have entered already exists in the room");
+                    };
+                }
+
+
+            });
+
+
+
+            // Info messages sent by server;
+            socket.on("infoMessage", (infoMsg) => {
+                if (socketMessageSendQuestionMade) {
+                    if (infoMsg.errCause == "usn") {
+                        // Invalid username, full signout;
+                        localStorage.removeItem("username");
+                        localStorage.removeItem("roomID");
+                        alert("ENTER A VALID USERNAME!");
+                        window.location.replace("/");
+
+                    }
+
+                    socketMessageSendQuestionMade = false;
+                };
+            });
+
+            // Room data updates function;
+            // Client gets it whenever a room change happens (he joins the room/someone else joins the room/admin closes the room);
+            // Whenever this socket is hit, required html/javascript changes occur;
+            socket.on("roomUpdatesInformation", (roomUpdateData) => {
+                console.log(roomUpdateData);
+                // Showing the current admin;
+                document.getElementById("currentAdminHeader").innerHTML = `Admin: ${roomUpdateData.roomAdmin}`;
+
+                // Showing the current users;
+                document.getElementById("usersHere").innerHTML = "";
+                for (currentActiveUser of roomUpdateData.currentMembers) {
+                    document.getElementById("usersHere").innerHTML += 
+                    `
+                        <h2> ${currentActiveUser} </h2>
+                    `
+                }
+
+            });
+
+
+
+            // Receive messages from others;
+            socket.on("receiveMessageFromOthers", (receivedMessage) => {
+                displayReceivedMessage(receivedMessage);
+            });
+            
+            // Receive your own messages; 
+            // (literally no idea why i built it this way but fuckit, makes it easier to see if ur message didnt upload as direct html wouldnt work for that)
+            socket.on("receiveMessageFromYourself", (urOwnMessage) => {
+                displayOwnMessage(urOwnMessage);
+            })
+
+
+
+        </script>
+        <!-- Socket Connection #ENDF; -->
+
+        <!-- General Javascript; -->
+        <script>
+            // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~;
+            // Style scripts;
+            document.getElementById("allIncludingCenterSeperatorChatBox").style.height= `${((window.screen.height)/100)*80}px`; // Setting the height of the general chat area;
+            document.getElementById("currentUsersScroller").style.height= `${((document.getElementById("allIncludingCenterSeperatorChatBox").offsetHeight)/100)*80}px`; // Setting the height of the users scroller area;
+            
+
+
+            // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~;
+            // General functions;
+
+
+
+
+            function sendMessageF() {
+                // Getting the text from the entry;
+                let messageToSend = document.getElementById("messageTextEntry").value;
+                
+                // Basic clientside authentication;
+                if (messageToSend == undefined || messageToSend == null || messageToSend.length < 1) {
+                    alert("Please enter a message;");
+                    return 0;
+                }
+                
+                // Sending the message, the socket is waiting for the message on: "messageSent";
+                socket.emit("messageSent", {"user": localStorage.getItem("username"), "msg": messageToSend, "roomID": localStorage.getItem("roomID")});
+                
+                // Preventing the "re-request" error that I had which caused 3 socket requests for some reason, dirty logic but works;
+                socketMessageSendQuestionMade = true;
+            };
+
+            // Called upon a critical data error, removes all saved user data and sends the user to the homepage;
+            function clearAndGoBackF(alertMsg) {
+                localStorage.removeItem("username");
+                localStorage.removeItem("roomID");
+                alert(alertMsg);
+                location.href = "/";
+            };
+
+
+
+            function displayReceivedMessage(messageData) {
+                // Called by the "receiveMessageFromOthers" socket event listener;
+                // Displays/Renders the received message on the HTML;
+
+
+
+
+
+            };
+
+            function displayOwnMessage(messageData) {
+                // Displays/Renders your own messages on the HTML;
+                
+                // Firstly, clearing the message entry;
+                document.getElementById("messageTextEntry").value = "";
+
+                // Displaying the message;
+                document.getElementById("textMessagesChatArea").innerHTML += 
+                document.getElementById("textMessagesChatArea").innerHTML + `
+                    <div class="sentTextMessage">
+                        <p class="sentMessageMainText">${messageData}</p>
+                    </div>
+                `;
+            };
+
+        </script>
+
+    </body>
+</html>
